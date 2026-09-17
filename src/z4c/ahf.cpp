@@ -1045,10 +1045,11 @@ Real AHF::FlowFunctionRho(int i,
                           grid_.cos_theta(i) };
 
       // s^i = dFdi_u(i)/u (outward unit normal, raised index)
-      Real trace_ginv = 0.0, nGn = 0.0, sn = 0.0;
+      Real trace_ginv = 0.0, s2 = 0.0, nGn = 0.0, sn = 0.0;
       for (int a = 0; a < NDIM; ++a)
       {
         trace_ginv += ginv(a, a);
+        s2 += (dFdi_u(a) / u) * (dFdi_u(a) / u);
         sn += (dFdi_u(a) / u) * n[a];
         for (int b = 0; b < NDIM; ++b)
           nGn += ginv(a, b) * n[a] * n[b];
@@ -1056,7 +1057,7 @@ Real AHF::FlowFunctionRho(int i,
 
       // D = (g^ij - s^i s^j)(delta_ij - n_i n_j)
       //   = trace(g^ij) - 1 - [n^T g^{-1} n - (s.n)^2]
-      const Real D = trace_ginv - 1.0 - (nGn - SQR(sn));
+      const Real D = trace_ginv - s2 - (nGn - SQR(sn));
 
       if (!(std::isfinite(D)) || std::fabs(D) < 1.0e-14)
         return H * u;  // degenerate fallback: behave like Hu
@@ -1066,7 +1067,6 @@ Real AHF::FlowFunctionRho(int i,
     }
   }
 }
-
 //----------------------------------------------------------------------------------------
 //! \fn Real AHF::SurfaceElement(...)
 //  \brief Compute the determinant of the induced 2-metric on the horizon
